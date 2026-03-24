@@ -1,1 +1,3 @@
-git-driven-monitoring\terraform\oidc.tf
+zhide/
+#  leak your home/hotspot IP to GitHub, terraform.tfvars is where you put your actual IP
+*.tfvars 

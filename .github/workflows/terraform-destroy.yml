@@ -1,0 +1,38 @@
+name: Infrastructure Teardown
+
+on:
+    workflow_dispatch: # Manual trigger only
+
+permissions:
+    id-token: write
+    contents: read
+
+env:
+    AWS_REGION: us-east-1
+
+jobs:
+    terraform_destroy:
+        name: "Destroy Infrastructure"
+        runs-on: ubuntu-latest
+        environment: test # Optional: Add a second approval gate here too!
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: ${{ env.AWS_REGION }}
+
+            - name: Terraform Init
+              run: terraform init -reconfigure
+              working-directory: ./terraform
+
+            - name: Terraform Destroy
+              run: terraform destroy -auto-approve
+              working-directory: ./terraform
