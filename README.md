@@ -97,6 +97,45 @@ monitoring/ → Git-driven monitoring platform
 
 ---
 
+
+One-Time AWS Security Setup (OIDC)
+To keep this project secure and avoid using permanent AWS Access Keys, we use OpenID Connect (OIDC). Follow these steps to link your GitHub repo to AWS:
+
+1. Create the Identity Provider
+Go to IAM Console > Identity providers > Add provider.
+
+Provider type: OpenID Connect.
+
+Provider URL: https://token.actions.githubusercontent.com (Click "Get thumbprint").
+
+Audience: sts.amazonaws.com.
+
+2. Create the IAM Role for GitHub
+Go to Roles > Create role.
+
+Trusted entity type: Web identity.
+
+Identity provider: Select the one you just created.
+
+Audience: sts.amazonaws.com.
+
+GitHub Organization/User: nebatn
+
+Repository: git-driven-monitoring
+
+Permissions: Attach AdministratorAccess (or your specific custom policy).
+
+Role Name: github-actions-monitoring-role.
+
+3. Update the Workflow
+Copy the ARN of your new role (e.g., arn:aws:iam::1234567890:role/...).
+
+Go to your GitHub Repo > Settings > Secrets and variables > Actions.
+
+Add a new Secret named AWS_ROLE_ARN and paste the ARN there.
+
+---
+
 ## 📌 Author
 
 Nebat Nurhussen Taha
