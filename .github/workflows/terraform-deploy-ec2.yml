@@ -1,4 +1,4 @@
-name: Single-Region Terraform Deployment
+name: Terraform Deployment
 
 on:
   workflow_dispatch:
@@ -82,3 +82,7 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
         working-directory: ./terraform
+
+# I use GitHub Action Artifacts to pass the binary tfplan file from the Plan job to the Apply job.
+# This ensures the execution is deterministic and exactly matches the inspected plan, even if the
+# underlying code in the branch changes while the job is waiting for approval.
