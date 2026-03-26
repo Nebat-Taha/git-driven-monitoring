@@ -1,0 +1,38 @@
+---
+- name: Ensure prometheus group exists
+  group:
+    name: prometheus
+    state: present
+    system: yes
+
+- name: Create prometheus system user
+  user:
+    name: prometheus
+    group: prometheus
+    shell: /sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Create base monitoring directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+  loop:
+    - /opt/monitoring
+    - /opt/monitoring/scripts
+    - /opt/monitoring/venv
+    - /etc/prometheus
+    - /etc/prometheus/file_sd
+    - /var/lib/prometheus
+
+- name: Install base dependencies
+  apt:
+    name:
+      - python3-pip
+      - python3-venv
+      - unzip
+    state: present
+    update_cache: yes

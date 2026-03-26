@@ -1,0 +1,7 @@
+---
+- name: "Workflow 2: Infrastructure Provisioning"
+  hosts: role_monitoring_server
+  become: true
+  roles:
+    - common
+    - prometheus

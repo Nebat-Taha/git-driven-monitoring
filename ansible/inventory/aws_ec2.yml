@@ -1,0 +1,20 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - us-east-1
+
+# Only find instances that are currently running
+filters:
+  instance-state-name: [ 'running' ]
+
+# This is the "Filter": Find the server we tagged in Terraform
+hostnames:
+  - tag:Name
+
+# Grouping logic: This puts our server into a group called 'monitoring_servers'
+keyed_groups:
+  - key: tags.Role
+    prefix: role
+
+# Construct the connection string
+compose:
+  ansible_host: public_ip_address
