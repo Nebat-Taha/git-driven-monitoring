@@ -18,11 +18,18 @@ module "security_groups" {
 }
 
 
-# 3. Compute Layer
+# 3. IAM Layer (New!)
+module "iam" {
+  source       = "./modules/iam"
+  project_name = "monitoring-system"
+}
+
+# 4. Compute Layer (Updated to receive the profile)
 module "ec2" {
-  source            = "./modules/ec2"
-  project_name      = "monitoring-system"
-  public_subnet_id  = module.vpc.public_subnet_id
-  security_group_id = module.security_groups.security_group_id
-  key_name          = "monitoring-key" # We need to create this in the console once
+  source               = "./modules/ec2"
+  project_name         = "monitoring-system"
+  public_subnet_id     = module.vpc.public_subnet_id
+  security_group_id    = module.security_groups.security_group_id
+  iam_instance_profile = module.iam.instance_profile_name # Link here
+  key_name             = "monitoring-key"
 }

@@ -8,3 +8,4 @@ variable "my_ip" {
   description = "Your current public IP (e.g., 1.2.3.4/32)"
   type        = string
 }
+

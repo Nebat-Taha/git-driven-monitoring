@@ -17,8 +17,16 @@ resource "aws_instance" "prometheus_server" {
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [var.security_group_id]
   key_name               = var.key_name
+  iam_instance_profile   = var.iam_instance_profile
 
-  # This tag is CRITICAL for your Ansible Dynamic Inventory
+
+  lifecycle {
+    # This is the "Safety Switch"
+    # Even if a new AMI is released, Terraform will NOT try to replace your instance
+    ignore_changes = [ami]
+  }
+
+  # This tag is CRITICAL for the Ansible Dynamic Inventory
   tags = {
     Name    = "${var.project_name}-prometheus"
     Project = var.project_name
