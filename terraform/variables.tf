@@ -16,11 +16,6 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "key_name" {
-  type        = string
-  description = "The name of the SSH key pair already created in AWS Console"
-}
-
 # This is the variable fed by the GitHub Action secret 'TF_VAR_my_ip'
 variable "my_ip" {
   type        = string

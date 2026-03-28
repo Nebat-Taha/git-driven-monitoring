@@ -25,7 +25,7 @@ resource "aws_instance" "this" {
   instance_type          = var.instance_type
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [var.security_group_id]
-  key_name               = var.key_name
+
 
   # Only attaches the profile if one is provided
   iam_instance_profile = var.iam_instance_profile

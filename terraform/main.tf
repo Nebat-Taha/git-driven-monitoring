@@ -67,7 +67,6 @@ module "ec2_prometheus" {
   instance_type        = "t2.micro"
   public_subnet_id     = module.vpc.public_subnet_id
   security_group_id    = module.monitoring_sg.id
-  key_name             = var.key_name
   iam_instance_profile = module.iam_monitoring.instance_profile_name
 
   custom_tags = {
@@ -85,7 +84,7 @@ module "ec2_remote_node" {
   instance_type     = "t2.micro"
   public_subnet_id  = module.vpc.public_subnet_id
   security_group_id = module.monitoring_sg.id
-  key_name          = var.key_name
+
 
   # This node doesn't need AWS API access
   iam_instance_profile = null
