@@ -23,7 +23,7 @@ resource "aws_security_group" "this" {
     from_port   = 9090
     to_port     = 9090
     protocol    = "tcp"
-    cidr_blocks = ["${var.my_ip}/32"]
+    cidr_blocks = ["${var.my_ip}"]
   }
 
   # Rule 3: Exporter Scrapping (Internal VPC only)
