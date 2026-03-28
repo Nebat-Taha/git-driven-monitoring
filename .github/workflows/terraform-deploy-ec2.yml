@@ -1,3 +1,28 @@
+# ==============================================================================
+# WORKFLOW 1: Infrastructure Deployment (Terraform)
+# ==============================================================================
+# ARCHITECTURE:
+#   - Two-stage pipeline: 'Plan' and 'Apply'.
+#   - Execution occurs on GitHub-hosted Ubuntu runners.
+#
+# TRIGGER:
+#   - Currently 'workflow_dispatch' for manual control.
+#   - Configured (commented) for automatic pushes to 'main' affecting terraform/ code.
+#
+# SECURITY STRATEGY:
+#   - OIDC (OpenID Connect): Uses 'id-token: write' to assume an AWS IAM Role
+#     via 'secrets.AWS_ROLE_ARN'. No long-lived AWS Access Keys are used.
+#   - LEAST PRIVILEGE: 'TF_VAR_my_ip' is pulled from GitHub Secrets to restrict
+#     SSH/Management traffic to the admin's specific IP without exposing it in logs.
+#
+# DEPLOYMENT DECISIONS:
+#   - DETERMINISTIC EXECUTION: I use GitHub Action Artifacts to pass the binary
+#     'tfplan' file from the Plan job to the Apply job. This ensures the execution
+#     is exactly what was inspected, preventing drift if code changes during approval.
+#   - ENVIRONMENT GATING: The 'Apply' job is locked behind the 'test' environment
+#     to allow for manual verification of the plan before infrastructure is changed.
+# ==============================================================================
+
 name: Terraform Deployment
 
 on:
@@ -8,7 +33,7 @@ on:
   #  - 'terraform/*.tf'         # Changes to main.tf, providers, etc.
   #  - 'terraform/modules/**'   # Changes to any reusable module
 
-permissions:
+permissions: # TODO: refer priviledges
   contents: read
   id-token: write
 
@@ -41,6 +66,7 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Plan
+        # We output to a file 'tfplan' to ensure the 'Apply' stage uses this exact result
         run: terraform plan -input=false -out=tfplan
         working-directory: ./terraform
 
@@ -79,10 +105,7 @@ jobs:
         run: terraform init -reconfigure
         working-directory: ./terraform
 
-      - name: Terraform Apply
+      - name: Terraform Apply # TODO : versioning of artifact and how it works
+        # Apply specifically the binary 'tfplan' artifact downloaded above
         run: terraform apply -auto-approve tfplan
         working-directory: ./terraform
-
-# I use GitHub Action Artifacts to pass the binary tfplan file from the Plan job to the Apply job.
-# This ensures the execution is deterministic and exactly matches the inspected plan, even if the
-# underlying code in the branch changes while the job is waiting for approval.

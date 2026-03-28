@@ -2,10 +2,10 @@ name: "Workflow 2: Ansible Provisioning"
 
 on:
     workflow_dispatch:
-    push:
-        branches: [main]
-        paths:
-            - "ansible/**"
+    #push:
+    #branches: [main]
+    #paths:
+    #- "ansible/**"
 
 permissions:
     id-token: write # Required for OIDC

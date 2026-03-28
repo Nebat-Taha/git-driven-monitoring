@@ -1,27 +1,59 @@
-# terraform/modules/iam/main.tf
+# ==============================================================================
+# ARCHITECTURE: IAM Role & Instance Profile
+# TRIGGER: Called by root main.tf to provide EC2 instances with AWS API access.
+# DECISIONS: 
+#   - Use 'this' naming convention to keep the module generic.
+#   - Create an 'Instance Profile' because that is the actual container 
+#     the EC2 instance "plugs into" to inherit the Role.
+# ==============================================================================
 
-# 1. Define the Trust Policy (Who can use this role?)
-resource "aws_iam_role" "prometheus_role" {
-  name = "${var.project_name}-prometheus-role"
+resource "aws_iam_role" "this" {
+  name = var.role_name
 
+  # The "Trust Policy" - allows EC2 service to assume this role
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Action    = "sts:AssumeRole"
-      Effect    = "Allow"
-      Principal = { Service = "ec2.amazonaws.com" }
-    }]
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
   })
+
+  tags = {
+    Name    = var.role_name
+    Project = var.project_name
+  }
 }
 
-# 2. Attach the Policy (What can this role do?)
-resource "aws_iam_role_policy_attachment" "read_only" {
-  role       = aws_iam_role.prometheus_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
+# The Policy itself (the specific permissions)
+resource "aws_iam_policy" "this" {
+  name        = "${var.role_name}-policy"
+  description = "Policy for ${var.role_name}"
+  policy      = var.policy_json
 }
 
-# 3. Create the Instance Profile (The "Bridge" to EC2)
-resource "aws_iam_instance_profile" "prometheus_profile" {
-  name = "${var.project_name}-prometheus-profile"
-  role = aws_iam_role.prometheus_role.name
+# Attach the policy to the role
+resource "aws_iam_role_policy_attachment" "this" {
+  role       = aws_iam_role.this.name
+  policy_arn = aws_iam_policy.this.arn
+}
+
+# The Instance Profile (The part the EC2 actually sees)
+resource "aws_iam_instance_profile" "this" {
+  name = "${var.role_name}-profile"
+  role = aws_iam_role.this.name
+}
+
+# ==============================================================================
+# OUTPUTS: Essential for passing the profile name to the EC2 module
+# ==============================================================================
+
+output "instance_profile_name" {
+  value       = aws_iam_instance_profile.this.name
+  description = "The name of the instance profile to be used in the EC2 module."
 }

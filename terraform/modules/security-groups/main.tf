@@ -1,29 +1,32 @@
-# terraform/modules/security-groups/main.tf
+# ==============================================================================
+# MODULE: Security Group Factory
+# ARCHITECTURE: Generic Security Group Container
+# DECISION: We define the "Monitoring" rules here, but this module could be 
+#           expanded to accept rules as a list/map variable for total reuse.
+# ==============================================================================
 
-resource "aws_security_group" "prometheus_sg" {
-  name        = "${var.project_name}-prometheus-sg"
-  description = "Allow monitoring and management traffic"
+resource "aws_security_group" "this" {
+  name        = var.name
+  description = "Security group for ${var.name}"
   vpc_id      = var.vpc_id
 
-  # SSH for Ansible (from GitHub Runners)
+  # Rule 1: SSH (Standard for all our instances)
   ingress {
-    description = "SSH from anywhere"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Prometheus UI (Restricted to your IP)
+  # Rule 2: Management UI (Restricted to Secret IP)
   ingress {
-    description = "Prometheus UI"
     from_port   = 9090
     to_port     = 9090
     protocol    = "tcp"
-    cidr_blocks = [var.allowed_mgmt_ip]
+    cidr_blocks = ["${var.my_ip}/32"]
   }
 
-  # Node Exporter (Internal VPC scraping)
+  # Rule 3: Exporter Scrapping (Internal VPC only)
   ingress {
     from_port   = 8000
     to_port     = 9100
@@ -31,7 +34,6 @@ resource "aws_security_group" "prometheus_sg" {
     cidr_blocks = [var.vpc_cidr]
   }
 
-  # Outbound: Allow everything (needed to scrape targets & download updates)
   egress {
     from_port   = 0
     to_port     = 0
@@ -40,6 +42,11 @@ resource "aws_security_group" "prometheus_sg" {
   }
 
   tags = {
-    Name = "${var.project_name}-prometheus-sg"
+    Name    = var.name
+    Project = var.project_name
   }
+}
+
+output "id" {
+  value = aws_security_group.this.id
 }

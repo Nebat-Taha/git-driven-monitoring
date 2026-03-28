@@ -1,35 +1,98 @@
-# terraform/main.tf
+# ==============================================================================
+# ROOT MODULE: Git-Driven Monitoring Platform
+# ARCHITECTURE: 
+#   - Decoupled Networking, Security, Identity, and Compute.
+#   - Deploys 1 Monitoring Engine and 1 Remote Test Node.
+#   - Multi-tier deployment using reusable Compute and IAM modules.
+#   - Orchestrates one 'Monitoring Server' and one 'Remote Node'.
+#
+# DECISIONS: 
+#   - SECURITY: Define specific JSON policies here and pass them to the IAM module.
+#   - AUTOMATION: Tags are used as the primary keys for Ansible Dynamic Inventory.
+#   - REUSABILITY: Each instance call uses the same module but with different 'custom_tags'.
+#   - MODULARITY: Every resource is called via a generic 'this' module.
+#   - CONNECTIVITY: Uses 'public_ip' for GitHub Runner/Ansible access.
+#   - SECURITY: Port 9090 is locked to 'var.my_ip' (GitHub Secret).
+# ==============================================================================
 
-# 1. Network Layer
+# 1. --- NETWORK ---
+# Creates the VPC, Subnet, and Internet Gateway.
 module "vpc" {
   source             = "./modules/vpc"
-  project_name       = "monitoring-system"
+  project_name       = var.project_name
   vpc_cidr           = "10.0.0.0/16"
   public_subnet_cidr = "10.0.1.0/24"
 }
 
-# 2. Security Layer
-module "security_groups" {
-  source          = "./modules/security-groups"
-  project_name    = "monitoring-system"
-  vpc_id          = module.vpc.vpc_id # Passing output from VPC module
-  vpc_cidr        = "10.0.0.0/16"
-  allowed_mgmt_ip = var.my_ip # We'll define this in variables.tf
+# 2. --- SECURITY (FIREWALL) ---
+# Creates the Security Group rules using the admin's secret IP.
+module "monitoring_sg" {
+  source       = "./modules/security_group"
+  name         = "${var.project_name}-monitoring-sg"
+  vpc_id       = module.vpc.vpc_id
+  project_name = var.project_name
+  my_ip        = var.my_ip # Injected via TF_VAR_my_ip secret
+  vpc_cidr     = module.vpc.vpc_cidr
 }
 
-
-# 3. IAM Layer (New!)
-module "iam" {
+# 3. --- IDENTITY (IAM) ---
+# Defines what the Monitoring Server can do in the AWS API.
+module "iam_monitoring" {
   source       = "./modules/iam"
-  project_name = "monitoring-system"
+  project_name = var.project_name
+  role_name    = "${var.project_name}-monitoring-role"
+
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sqs:GetQueueAttributes",
+          "sqs:ListQueues",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:ListMetrics"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
 }
 
-# 4. Compute Layer (Updated to receive the profile)
-module "ec2" {
+# 4. --- COMPUTE: MONITORING ENGINE ---
+# This is your Prometheus/Grafana server.
+module "ec2_prometheus" {
   source               = "./modules/ec2"
-  project_name         = "monitoring-system"
+  project_name         = var.project_name
+  instance_type        = "t2.micro"
   public_subnet_id     = module.vpc.public_subnet_id
-  security_group_id    = module.security_groups.security_group_id
-  iam_instance_profile = module.iam.instance_profile_name # Link here
-  key_name             = "monitoring-key"
+  security_group_id    = module.monitoring_sg.id
+  key_name             = var.key_name
+  iam_instance_profile = module.iam_monitoring.instance_profile_name
+
+  custom_tags = {
+    Name             = "${var.project_name}-prometheus-engine"
+    Role             = "monitoring-server"
+    Monitoring-Stack = "prometheus"
+  }
+}
+
+# 5. --- COMPUTE: REMOTE TEST NODE ---
+# A second instance to prove the Ansible automation works on remote targets.
+module "ec2_remote_node" {
+  source            = "./modules/ec2"
+  project_name      = var.project_name
+  instance_type     = "t2.micro"
+  public_subnet_id  = module.vpc.public_subnet_id
+  security_group_id = module.monitoring_sg.id
+  key_name          = var.key_name
+
+  # This node doesn't need AWS API access
+  iam_instance_profile = null
+
+  custom_tags = {
+    Name             = "${var.project_name}-test-node"
+    Role             = "web-server"
+    Monitoring-Stack = "prometheus"
+  }
 }

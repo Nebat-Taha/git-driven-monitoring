@@ -1,11 +1,33 @@
-# terraform/variables.tf
-variable "aws_region" {
-  description = "The AWS region to deploy resources into"
+# ==============================================================================
+# ROOT VARIABLES: Global Project Configuration
+# STRATEGY: Externalize all environment-specific values.
+# DECISION: 'project_name' acts as the prefix for all resources to ensure 
+#           uniqueness and organized billing/tagging in AWS.
+# ==============================================================================
+
+variable "project_name" {
   type        = string
-  default     = "us-east-1"
-}
-variable "my_ip" {
-  description = "Your current public IP (e.g., 1.2.3.4/32)"
-  type        = string
+  description = "The name of the project (e.g., 'git-driven-monitoring')"
+  default     = "monitoring-system"
 }
 
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
+}
+
+variable "key_name" {
+  type        = string
+  description = "The name of the SSH key pair already created in AWS Console"
+}
+
+# This is the variable fed by the GitHub Action secret 'TF_VAR_my_ip'
+variable "my_ip" {
+  type        = string
+  description = "The public IP of the administrator for restricted access"
+}
+
+variable "vpc_cidr" {
+  type    = string
+  default = "10.0.0.0/16"
+}
