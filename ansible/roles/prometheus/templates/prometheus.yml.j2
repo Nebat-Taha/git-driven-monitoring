@@ -1,13 +1,47 @@
+# ansible/roles/prometheus/templates/prometheus.yml.j2
+
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'master-monitor'
+    origin: 'us-east-1'
 
+# 1. The "Meta" Job: Monitor Prometheus itself
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  # This is the "Hook" for Workflow 3
-  - job_name: 'dynamic_custom_exporters'
+  # 2. THE INFRASTRUCTURE LAYER: (Standard Port 9100)
+  # Automatically finds any EC2 with the tag Monitoring-Stack: prometheus
+  - job_name: 'aws_ec2_infrastructure'
+    ec2_sd_configs:
+      - region: us-east-1
+        port: 9100
+        filters:
+          - name: tag:Monitoring-Stack
+            values: ["prometheus"]
+    
+    # This transforms the messy AWS Private IP into the "Name" tag for your dashboard
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
+      - source_labels: [__meta_ec2_availability_zone]
+        target_label: az
+
+  # 3. THE CLOUDWATCH LAYER: (Proxy for RDS/SQS)
+  - job_name: 'aws_managed_services'
+    static_configs:
+      - targets: ['localhost:9106']
+    labels:
+      category: 'cloudwatch'
+
+  # 4. THE SELF-SERVICE LAYER: (Engineer-Defined Ports)
+  # This is the "Hook" for Workflow 3. 
+  # It watches the folder for ANY .json file created by our automation.
+  - job_name: 'custom_python_exporters'
     file_sd_configs:
       - files:
           - '/etc/prometheus/file_sd/*.json'
+    # No restart needed when files are added here!

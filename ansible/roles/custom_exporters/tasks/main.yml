@@ -1,0 +1,13 @@
+---
+- name: Copy Python scripts to the server
+  copy:
+    src: "../../python_scripts/" # Goes up to the root of the repo
+    dest: "/opt/monitoring/scripts/"
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+
+- name: Process each exporter config
+  include_tasks: manage_single_exporter.yml
+  with_fileglob:
+    - "../../exporters_configs/*.yml"

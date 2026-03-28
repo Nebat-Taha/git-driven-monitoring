@@ -1,0 +1,6 @@
+---
+- name: "Workflow 3: Deploy Custom Exporters"
+  hosts: role_monitoring_server
+  become: true
+  roles:
+    - custom_exporters

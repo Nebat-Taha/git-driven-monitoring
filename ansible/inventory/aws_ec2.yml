@@ -1,20 +1,30 @@
+---
 plugin: amazon.aws.aws_ec2
 regions:
   - us-east-1
 
-# Only find instances that are currently running
+# 1. Broaden the filter to find BOTH types of servers
 filters:
   instance-state-name: [ 'running' ]
+  # This finds anything with either the 'Role' tag OR the 'Monitoring-Stack' tag
+  tag:Role: monitoring-server
+  tag:Monitoring-Stack: prometheus
 
-# This is the "Filter": Find the server we tagged in Terraform
 hostnames:
   - tag:Name
+  - public-ip-address # Use Public IP for identification
 
-# Grouping logic: This puts our server into a group called 'monitoring_servers'
 keyed_groups:
+  # Group A: role_monitoring_server (The engine)
   - key: tags.Role
     prefix: role
+    separator: "_"
 
-# Construct the connection string
+  # Group B: monitoring_stack_prometheus (The nodes to be monitored)
+  - key: tags.Monitoring-Stack
+    prefix: monitoring_stack
+    separator: "_"
+
 compose:
+  # Use Public IP for the SSH connection from GitHub
   ansible_host: public_ip_address

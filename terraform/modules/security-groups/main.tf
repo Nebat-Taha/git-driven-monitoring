@@ -5,16 +5,18 @@ resource "aws_security_group" "prometheus_sg" {
   description = "Allow monitoring and management traffic"
   vpc_id      = var.vpc_id
 
-  # SSH for Ansible (Restricted to your IP)
+  # SSH for Ansible (from GitHub Runners)
   ingress {
+    description = "SSH from anywhere"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [var.allowed_mgmt_ip]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # Prometheus UI (Restricted to your IP)
   ingress {
+    description = "Prometheus UI"
     from_port   = 9090
     to_port     = 9090
     protocol    = "tcp"
@@ -23,7 +25,7 @@ resource "aws_security_group" "prometheus_sg" {
 
   # Node Exporter (Internal VPC scraping)
   ingress {
-    from_port   = 9100
+    from_port   = 8000
     to_port     = 9100
     protocol    = "tcp"
     cidr_blocks = [var.vpc_cidr]

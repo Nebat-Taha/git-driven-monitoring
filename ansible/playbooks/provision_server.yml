@@ -5,3 +5,5 @@
   roles:
     - common
     - prometheus
+    - node_exporter
+    - cloudwatch_exporter

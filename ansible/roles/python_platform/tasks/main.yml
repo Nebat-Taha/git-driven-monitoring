@@ -1,0 +1,26 @@
+---
+# 1. Setup the Python Environment
+- name: Create Python Virtual Environment
+  ansible.builtin.command:
+    cmd: python3 -m venv /opt/monitoring/venv
+    creates: /opt/monitoring/venv/bin/python
+
+- name: Install required Python libraries
+  ansible.builtin.pip:
+    name:
+      - prometheus_client
+      - boto3
+      - requests
+    virtualenv: /opt/monitoring/venv
+    state: present
+
+# 2. Setup Permissions
+- name: Ensure scripts directory is writable by prometheus user
+  ansible.builtin.file:
+    path: /opt/monitoring/scripts
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+# 3. The "Service Engine" (Handled in Workflow 3)
+# We leave this role ready so Workflow 3 can just drop files here.
