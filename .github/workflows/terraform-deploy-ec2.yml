@@ -40,6 +40,7 @@ permissions: # TODO: refer priviledges
 env:
   AWS_REGION: us-east-1
   TF_VAR_my_ip: ${{ secrets.TF_VAR_my_ip }} # This maps the secret to Terraform
+  TF_VAR_key_name: ${{ secrets.TF_VAR_key_name }}
 
 jobs:
   # --- JOB 1: PLAN ---
