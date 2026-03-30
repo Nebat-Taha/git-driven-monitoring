@@ -72,7 +72,7 @@ jobs:
             - name: Run Playbook (Check Mode)
               run: |
                   # We use -i to point to our dynamic inventory logic later
-                  ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/site.yml --check --diff
+                  ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbooks/site.yml --check --diff
               env:
                   ANSIBLE_HOST_KEY_CHECKING: "False"
                   AWS_REGION: us-east-1
