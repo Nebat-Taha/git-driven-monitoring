@@ -61,6 +61,15 @@
   become: true
   changed_when: true
 
+- name: DIAGNOSTIC - Check if instance can reach Google DNS
+  command: ping -c 3 8.8.8.8
+  register: ping_test
+  ignore_errors: true
+
+- name: DIAGNOSTIC - Show Ping Results
+  debug:
+    msg: "Internet Connection Status: {{ 'SUCCESS' if ping_test.rc == 0 else 'FAILED' }}"
+
 - name: Install base dependencies
   apt:
     name:
