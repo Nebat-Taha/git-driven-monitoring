@@ -15,41 +15,22 @@
 # DECISION: Download to /tmp to keep the filesystem clean. unarchive handles
 #           extraction and cleanup in one step.
 # ==============================================================================
-- name: Set Prometheus path variables
-  set_fact:
-    prom_temp_dir: "/tmp/prometheus_install"
-    prom_archive: "/tmp/prometheus_install/prometheus.tar.gz"
-
-- name: Create temporary download directory
-  file:
-    path: /tmp/prometheus_install
-    state: directory
-    mode: "0755"
-
-- name: Ensure Prometheus download directory exists
-  file:
-    path: "/tmp/prometheus_install"
-    state: directory
-    mode: "0775"
-    owner: ubuntu # Using the default user to ensure write access
-    group: ubuntu
-
-- name: Download Prometheus binary
+- name: Download Prometheus binary to Home
   get_url:
     url: "https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz"
-    dest: "/tmp/prometheus_install/prometheus.tar.gz"
+    dest: "/home/ubuntu/prometheus.tar.gz"
     mode: "0644"
     force: no
 
-- name: Extract Prometheus binary
+- name: Extract Prometheus binary in Home
   unarchive:
-    src: "/tmp/prometheus_install/prometheus.tar.gz"
-    dest: "/tmp/prometheus_install"
+    src: "/home/ubuntu/prometheus.tar.gz"
+    dest: "/home/ubuntu/"
     remote_src: yes
 
 - name: Copy Prometheus binaries to /usr/local/bin
   copy:
-    src: "/tmp/prometheus_install/prometheus-2.51.0.linux-amd64/{{ item }}"
+    src: "/home/ubuntu/prometheus-2.51.0.linux-amd64/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     mode: "0755"
     owner: prometheus
@@ -58,7 +39,6 @@
   loop:
     - prometheus
     - promtool
-
 # ==============================================================================
 # TASK: Configuration & Service Deployment
 # DECISION: We use 'notify' to trigger a Restart handler only if the
