@@ -15,10 +15,22 @@
 # DECISION: Download to /tmp to keep the filesystem clean. unarchive handles
 #           extraction and cleanup in one step.
 # ==============================================================================
+- name: Create temporary download directory
+  file:
+    path: /tmp/prometheus_install
+    state: directory
+    mode: "0755"
+
 - name: Download Prometheus binary
   get_url:
     url: "https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz"
     dest: "/tmp/prometheus.tar.gz"
+
+- name: Wait for download to be present on disk
+  wait_for:
+    path: "/tmp/prometheus_install/prometheus.tar.gz"
+    state: present
+    timeout: 30
 
 - name: Extract Prometheus binary
   unarchive:
