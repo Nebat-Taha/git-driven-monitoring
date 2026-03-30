@@ -62,15 +62,21 @@
     repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
     state: present
 
+- name: Wait for any background apt locks to release
+  shell: |
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do sleep 5; done;
+  changed_when: false
+
 - name: Install base dependencies
   apt:
     name:
       - python3-pip
       - python3-venv
       - python3-setuptools
+      - python3-full
       - unzip
       - curl
       - git
     state: present
     update_cache: yes
-    cache_valid_time: 3600
+    force_apt_get: yes
