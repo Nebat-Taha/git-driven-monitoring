@@ -70,6 +70,16 @@
   debug:
     msg: "Internet Connection Status: {{ 'SUCCESS' if ping_test.rc == 0 else 'FAILED' }}"
 
+- name: Force Repositories and Install Dependencies
+  block:
+    - name: Clean and Update Apt Root
+      shell: |
+        apt-get clean
+        rm -rf /var/lib/apt/lists/*
+        apt-get update
+      args:
+        warn: false
+
 - name: Install base dependencies
   apt:
     name:
