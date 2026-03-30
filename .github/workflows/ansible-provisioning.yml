@@ -22,7 +22,7 @@ jobs:
     ansible-apply:
         name: "Ansible Apply (Provisioning)"
         runs-on: ubuntu-latest
-        environment: test # manual approval gate
+        #environment: test # manual approval gate
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4

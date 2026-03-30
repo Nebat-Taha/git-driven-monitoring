@@ -53,5 +53,5 @@ jobs:
 
       - name: Terraform Destroy
         # -auto-approve is used because the "Approval" happened at the Environment gate
-        run: terraform destroy -auto-approve
+        run: terraform destroy -auto-approve -var="my_ip=0.0.0.0/0"
         working-directory: ./terraform
