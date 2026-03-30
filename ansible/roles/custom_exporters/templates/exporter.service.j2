@@ -5,8 +5,8 @@ After=network.target
 [Service]
 User=prometheus
 Group=prometheus
-# We use the absolute path to the venv's python to ensure all libraries are found
 WorkingDirectory=/opt/monitoring/scripts
+# EXECUTION: Calls the venv python, the mapped .py file, and the dynamic port
 ExecStart=/opt/monitoring/venv/bin/python /opt/monitoring/scripts/{{ item | basename | replace('.yml', '.py') }} --port {{ current_exporter.port }}
 Restart=always
 RestartSec=5

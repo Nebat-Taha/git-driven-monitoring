@@ -139,3 +139,91 @@ Add a new Secret named AWS_ROLE_ARN and paste the ARN there.
 ## 📌 Author
 
 Nebat Nurhussen Taha
+
+
+Edit from here 
+
+This `README.md` is the "Source of Truth" for your repository. It bridges the gap between your Terraform infrastructure, your Ansible automation, and your GitHub Actions workflows, ensuring anyone (including your future self) understands how this "Monitoring-as-Code" platform works.
+
+---
+
+# 🛡️ Integrated AWS Monitoring Platform (DevOps Stack)
+
+This repository contains a fully automated, keyless monitoring solution designed for AWS. It utilizes **Prometheus** for metric collection, **Ansible** for configuration management, and **GitHub Actions** for secure, OIDC-based deployment of custom Python exporters.
+
+## 🏗️ Architecture Overview
+
+The system is built on a "Hub and Spoke" model:
+* **The Hub:** A central Monitoring Server running Prometheus, receiving metrics from all spokes.
+* **The Spokes:** Managed EC2 instances running `node_exporter` for OS metrics.
+* **The Factory:** A dynamic Python environment that turns Git-pushed scripts into live Prometheus targets without manual configuration.
+
+
+
+---
+
+## 📂 Repository Structure
+
+```text
+├── .github/workflows/       # CI/CD Pipelines (OIDC + EC2 Instance Connect)
+├── ansible/
+│   ├── inventory/           # Dynamic AWS EC2 Inventory (Tag-based)
+│   ├── playbooks/           # Provisioning and Deployment playbooks
+│   └── roles/               # Modular logic (Common, Prometheus, Exporters)
+├── exporters_configs/       # YAML definitions for custom Python exporters
+└── python_scripts/          # Custom Boto3 scripts for SQS, S3, and EC2 metrics
+```
+
+---
+
+## 🚀 Workflows
+
+### 1. Infrastructure Provisioning (`provision_server.yml`)
+**Target:** Instances tagged `Role: monitoring-server`.
+Sets up the base OS, installs the Prometheus binary, configures Systemd, and initializes the local Node Exporter.
+
+### 2. Remote Node Setup (`install_exporters.yml`)
+**Target:** Instances tagged `Monitoring-Stack: prometheus`.
+Automatically installs `node_exporter` on any instance across the VPC. Prometheus uses **EC2 Service Discovery** to find these nodes on port `9100` automatically.
+
+### 3. Custom Exporter Deployment (`deploy-exporters.yml`)
+**Target:** Monitoring Hub.
+Triggered by GitHub Actions on PR/Push.
+1.  **Lints** Python code using Flake8.
+2.  **Authorizes** access via AWS OIDC (Keyless).
+3.  **Injects** ephemeral SSH keys via EC2 Instance Connect.
+4.  **Syncs** scripts and creates Systemd services for each definition in `exporters_configs/`.
+
+---
+
+## 🛠️ How to Add a New Metric
+
+This platform is designed for **Zero-Touch Automation**. To monitor a new AWS service (e.g., SQS Age):
+
+1.  **Create the Script:** Add `sqs_monitor.py` to `python_scripts/`. Ensure it accepts a `--port` argument.
+2.  **Create the Config:** Add `sqs_monitor.yml` to `exporters_configs/` with the desired port:
+    ```yaml
+    port: 9201
+    ```
+3.  **Push to Git:** The CI/CD pipeline will validate the code, deploy it to the server, create the Systemd service, and register the target in Prometheus.
+
+---
+
+## 🔒 Security Features
+
+* **Keyless CI/CD:** No AWS Access Keys or static SSH Private Keys are stored in GitHub Secrets.
+* **IAM Roles:** The Monitoring Hub uses an EC2 Instance Profile with `CloudWatchReadOnlyAccess` and `ec2:DescribeInstances`.
+* **Isolation:** All custom exporters run in a dedicated Python Virtual Environment (`/opt/monitoring/venv`).
+* **Least Privilege:** All services run under a non-privileged `prometheus` system user.
+
+---
+
+## 📊 Maintenance & Logs
+
+* **View Prometheus:** `http://<PROMETHEUS_IP>:9090`
+* **Check Custom Exporter Logs:** `journalctl -u <exporter_name> -f`
+* **Reload Prometheus Config:** `curl -X POST http://localhost:9090/-/reload`
+
+---
+
+**Congratulations! You've built a production-grade, scalable monitoring engine. Would you like me to draft a sample "Starter Script" for your SQS Age exporter to test the new platform?**

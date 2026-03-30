@@ -1,3 +1,14 @@
+#================================================================================================
+# Architecture: Automated Python Exporter Factory
+# Decisions:
+#
+# Path Enforcement: Uses /opt/monitoring/venv/bin/python to ensure boto3 and prometheus_client are always available.
+#
+# Port Management: Passes {{ current_exporter.port }} as a CLI argument to the Python script, allowing one script template to run on multiple ports if needed.
+#
+# Metadata Tagging: The target.json.j2 includes a deployed_by: ansible_workflow_3 label, which is excellent for troubleshooting in Grafana later.
+# TODO: run by the third workflow deploy-exporters.yml and deploy_scripts.yml playbook
+# ================================================================================================
 ---
 - name: Copy Python scripts to the server
   copy:

@@ -1,4 +1,23 @@
+#================================================================================================
+# Architecture: Host Metrics Collection
+# Trigger: Executed on all nodes in the monitoring stack.
+
+# Decisions:
+
+# Binary Isolation: Installed to /usr/local/bin and owned by the prometheus system user for security.
+
+# File Service Discovery (File-SD): It creates node_exporter.json. This tells the local Prometheus
+# instance, "I am here, scrape me on port 9100."
+
+# Standardization: Uses v1.7.0, a stable version compatible with modern Linux kernels and Prometheus 2.51.
+#================================================================================================
+
 ---
+# ==============================================================================
+# TASK: Binary Acquisition
+# DECISION: We download and extract to /tmp to ensure the actual
+#           /usr/local/bin stays clean of tarball clutter.
+# ==============================================================================
 - name: Download Node Exporter
   get_url:
     url: "https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz"
@@ -19,6 +38,11 @@
     group: prometheus
     remote_src: yes
 
+# ==============================================================================
+# TASK: Service & Discovery Configuration
+# DECISION: We use a JSON target file to allow Prometheus to pick up this
+#           target via File Service Discovery (File-SD) without a restart.
+# ==============================================================================
 - name: Install systemd service
   template:
     src: node_exporter.service.j2

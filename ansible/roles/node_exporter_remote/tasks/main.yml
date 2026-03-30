@@ -1,4 +1,16 @@
+#================================================================================================
+# Architecture: Distributed Metric Collection
+# Trigger: Executed on all nodes except the monitoring hub (e.g., your application or database nodes).
+# Decisions: * Self-Contained: Unlike the Hub version, this role includes its own user/group creation (Phase 1). This is vital because these remote nodes don't necessarily run the common role in the same way the Hub does.
+#
+# No Local Registration: It does not create a .json file. It relies entirely on its AWS Tags (Monitoring-Stack: prometheus) to be "discovered" by the Hub's ec2_sd_configs.
+#================================================================================================
 ---
+# ==============================================================================
+# PHASE 1: Install & Setup (The "Plumbing")
+# DECISION: We create the prometheus user here to ensure the role is portable
+#           and can run on any standalone AWS instance.
+# ==============================================================================
 # PHASE 1: Install & Setup
 - name: Create prometheus group
   group:
@@ -30,6 +42,11 @@
     group: prometheus
     remote_src: yes
 
+# ==============================================================================
+# PHASE 2: Configuration & Service (The "Heartbeat")
+# DECISION: We use 'register' and 'when' logic here as a local alternative
+#           to 'notify/handlers' for immediate feedback.
+# ==============================================================================
 # PHASE 2: Configuration & Service
 - name: Install systemd service file
   template:

@@ -1,3 +1,20 @@
+# Architecture: Automated CI/CD Pipeline
+# Decisions:
+#
+# Linting (PR Gate): Checks for syntax errors (E9, F63, etc.) so a missing colon or an undefined variable doesn't crash your systemd services.
+#
+# OIDC Authentication: Uses role-to-assume with AWS, which is the most secure way to handle credentials—no long-lived AWS keys are stored in GitHub.
+#
+# OIDC: Assumes the AWS role without long-lived keys.
+#
+# EIC: Pushes a temporary public key to the server; the private key stays in the GitHub runner's RAM
+# and is destroyed when the job ends.
+#
+# Targeting: Uses the Project: monitoring-system tag to ensure keys are only pushed to relevant nodes.
+#
+# Granular Scoping: Only runs if files inside python_scripts/ or exporters_configs/ are modified. This saves GitHub Action minutes and prevents unnecessary Ansible runs.
+#
+# ===========================================
 name: "Workflow 4: Deploy Custom Exporters"
 
 on:
@@ -50,12 +67,28 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION}}
+          aws-region: us-east-1
 
-      - name: Setup SSH Key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Generate Ephemeral SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "" -q
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Inject SSH Keys (Instance Connect)
+        run: |
+          # Finds all monitoring nodes to authorize the ephemeral key
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --filters "Name=tag:Project,Values=monitoring-system" "Name=instance-state-name,Values=running" \
+            --query "Reservations[*].Instances[*].InstanceId" \
+            --output text)
+
+          for ID in $INSTANCE_IDS; do
+            aws ec2-instance-connect send-ssh-public-key \
+              --instance-id $ID \
+              --instance-os-user ubuntu \
+              --ssh-public-key file://~/.ssh/id_rsa.pub
+          done
 
       - name: Install Ansible Dependencies
         run: pip install boto3 botocore
