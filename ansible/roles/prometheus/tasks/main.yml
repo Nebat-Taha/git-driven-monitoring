@@ -15,6 +15,14 @@
 # DECISION: Download to /tmp to keep the filesystem clean. unarchive handles
 #           extraction and cleanup in one step.
 # ==============================================================================
+- name: Ensure prometheus user exists (Force for Dry Run)
+  user:
+    name: prometheus
+    shell: /sbin/nologin
+    system: yes
+    create_home: no
+  check_mode: no # <--- Forces the user to actually exist on the OS
+
 - name: Download Prometheus binary to Home
   get_url:
     url: "https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz"
