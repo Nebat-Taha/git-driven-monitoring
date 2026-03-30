@@ -77,8 +77,7 @@
         apt-get clean
         rm -rf /var/lib/apt/lists/*
         apt-get update
-      args:
-        warn: false
+      become: true
 
 - name: Install base dependencies
   apt:
@@ -93,6 +92,7 @@
     state: present
     update_cache: yes
     force_apt_get: yes
+  become: true
 
 - name: Create base monitoring directories
   file:
