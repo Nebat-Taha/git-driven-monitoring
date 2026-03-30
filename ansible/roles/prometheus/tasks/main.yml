@@ -68,6 +68,7 @@
   template:
     src: prometheus.service.j2
     dest: /etc/systemd/system/prometheus.service
+  check_mode: no
   notify: Restart Prometheus
 
 - name: Ensure Prometheus is started and enabled
