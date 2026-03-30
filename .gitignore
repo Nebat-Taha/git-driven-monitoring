@@ -1,3 +1,4 @@
 zhide/
 #  leak your home/hotspot IP to GitHub, terraform.tfvars is where you put your actual IP
 *.tfvars 
+.venv/
