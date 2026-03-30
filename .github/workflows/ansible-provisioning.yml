@@ -74,6 +74,7 @@ jobs:
                   # We use -i to point to our dynamic inventory logic later
                   ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml --check --diff
               env:
+                  ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
                   ANSIBLE_HOST_KEY_CHECKING: "False"
                   AWS_REGION: us-east-1
 
@@ -126,5 +127,6 @@ jobs:
               run: |
                   ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml
               env:
+                  ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
                   ANSIBLE_HOST_KEY_CHECKING: "False"
                   AWS_REGION: us-east-1
