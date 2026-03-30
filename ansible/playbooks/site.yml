@@ -1,5 +1,0 @@
-# ansible/site.yml
----
-- import_playbook: provision_server.yml
-- import_playbook: install_exporters.yml
-- import_playbook: deploy_scripts.yml
