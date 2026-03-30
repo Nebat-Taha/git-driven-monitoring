@@ -70,30 +70,6 @@
   debug:
     msg: "Internet Connection Status: {{ 'SUCCESS' if ping_test.rc == 0 else 'FAILED' }}"
 
-- name: Force Repositories and Install Dependencies
-  block:
-    - name: Clean and Update Apt Root
-      shell: |
-        apt-get clean
-        rm -rf /var/lib/apt/lists/*
-        apt-get update
-      become: true
-
-- name: Install base dependencies
-  apt:
-    name:
-      - python3-full
-      - python3-dev
-      - python3-venv
-      - python3-setuptools
-      - unzip
-      - curl
-      - git
-    state: present
-    update_cache: yes
-    force_apt_get: yes
-  become: true
-
 - name: Create base monitoring directories
   file:
     path: "{{ item }}" # This variable pulls the current string from the 'loop' list below
@@ -108,3 +84,19 @@
     - /etc/prometheus
     - /etc/prometheus/file_sd
     - /var/lib/prometheus
+
+- name: Force System Update and Install Dependencies
+  shell: |
+    set -e
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+    apt-get update -y
+    apt-get install -y python3-full python3-venv python3-dev curl git
+  become: true
+  register: apt_force_result
+  changed_when: "'installs' in apt_force_result.stdout or 'upgraded' in apt_force_result.stdout"
+
+- name: Show Update Output if it fails
+  debug:
+    var: apt_force_result.stdout_lines
+  when: apt_force_result.rc != 0
