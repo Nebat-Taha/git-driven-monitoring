@@ -96,4 +96,4 @@ jobs:
       - name: Run Ansible Deploy Playbook
         run: |
           cd ansible
-          ansible-playbook -i inventory/ playbooks/deploy_scripts.yml
+          ansible-playbook -i ansible/inventory/aws_ec2.yml  ansible/playbooks/deploy_scripts.yml

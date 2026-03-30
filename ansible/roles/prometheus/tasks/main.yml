@@ -20,13 +20,14 @@
     url: "https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz"
     dest: "/home/ubuntu/prometheus.tar.gz"
     mode: "0644"
-    force: no
+  check_mode: no
 
 - name: Extract Prometheus binary in Home
   unarchive:
     src: "/home/ubuntu/prometheus.tar.gz"
     dest: "/home/ubuntu/"
     remote_src: yes
+  check_mode: no
 
 - name: Copy Prometheus binaries to /usr/local/bin
   copy:
@@ -39,6 +40,7 @@
   loop:
     - prometheus
     - promtool
+  check_mode: no
 # ==============================================================================
 # TASK: Configuration & Service Deployment
 # DECISION: We use 'notify' to trigger a Restart handler only if the
