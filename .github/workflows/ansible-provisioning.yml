@@ -124,7 +124,7 @@ jobs:
 
             - name: Run Master Playbook
               run: |
-                  ansible-playbook -i ansible/inventory/ ansible/site.yml
+                  ansible-playbook -i ansible/inventory/ ansible/playbooks/site.yml
               env:
                   ANSIBLE_HOST_KEY_CHECKING: "False"
                   AWS_REGION: us-east-1
