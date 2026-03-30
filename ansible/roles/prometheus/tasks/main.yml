@@ -15,31 +15,22 @@
 # DECISION: Download to /tmp to keep the filesystem clean. unarchive handles
 #           extraction and cleanup in one step.
 # ==============================================================================
-- name: Ensure prometheus user exists (Force for Dry Run)
-  user:
-    name: prometheus
-    shell: /sbin/nologin
-    system: yes
-    create_home: no
-  check_mode: no # <--- Forces the user to actually exist on the OS
 
-- name: Download Prometheus binary to Home
+- name: Download Prometheus binary
   get_url:
     url: "https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz"
-    dest: "/home/ubuntu/prometheus.tar.gz"
+    dest: "/tmp/prometheus.tar.gz"
     mode: "0644"
-  check_mode: no
 
-- name: Extract Prometheus binary in Home
+- name: Extract Prometheus binary
   unarchive:
-    src: "/home/ubuntu/prometheus.tar.gz"
-    dest: "/home/ubuntu/"
+    src: "/tmp/prometheus.tar.gz"
+    dest: "/tmp"
     remote_src: yes
-  check_mode: no
 
 - name: Copy Prometheus binaries to /usr/local/bin
   copy:
-    src: "/home/ubuntu/prometheus-2.51.0.linux-amd64/{{ item }}"
+    src: "/tmp/prometheus-2.51.0.linux-amd64/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     mode: "0755"
     owner: prometheus
@@ -48,7 +39,6 @@
   loop:
     - prometheus
     - promtool
-  check_mode: no
 # ==============================================================================
 # TASK: Configuration & Service Deployment
 # DECISION: We use 'notify' to trigger a Restart handler only if the
@@ -68,7 +58,6 @@
   template:
     src: prometheus.service.j2
     dest: /etc/systemd/system/prometheus.service
-  check_mode: no
   notify: Restart Prometheus
 
 - name: Ensure Prometheus is started and enabled

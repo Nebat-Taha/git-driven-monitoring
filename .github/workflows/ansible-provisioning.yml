@@ -19,68 +19,8 @@ permissions:
     contents: read # Required for checkout
 
 jobs:
-    ansible-dry-run:
-        name: "Ansible Check (Dry Run)"
-        runs-on: ubuntu-latest
-        if: |
-            github.event_name == 'workflow_dispatch' || 
-            github.event_name == 'push' || 
-            github.event.workflow_run.conclusion == 'success'
-
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-
-            - name: Configure AWS Credentials (OIDC)
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-                  aws-region: us-east-1
-
-            - name: Set up Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: "3.11"
-                  #cache: "pip"
-
-            - name: Install Dependencies
-              run: |
-                  pip install ansible boto3 botocore
-                  ansible-galaxy collection install community.aws
-
-            - name: Generate Ephemeral SSH Key
-              run: |
-                  mkdir -p ~/.ssh
-                  ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "" -q
-                  chmod 600 ~/.ssh/id_rsa
-
-            - name: Inject SSH Keys (Instance Connect)
-              run: |
-                  INSTANCE_IDS=$(aws ec2 describe-instances \
-                    --filters "Name=tag:Project,Values=monitoring-system" "Name=instance-state-name,Values=running" \
-                    --query "Reservations[*].Instances[*].InstanceId" \
-                    --output text)
-
-                  for ID in $INSTANCE_IDS; do
-                    echo "Injecting key into $ID..."
-                    aws ec2-instance-connect send-ssh-public-key \
-                      --instance-id $ID \
-                      --instance-os-user ubuntu \
-                      --ssh-public-key file://~/.ssh/id_rsa.pub
-                  done
-
-            - name: Run Playbook (Check Mode)
-              run: |
-                  # We use -i to point to our dynamic inventory logic later
-                  ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml --check --diff
-              env:
-                  ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
-                  ANSIBLE_HOST_KEY_CHECKING: "False"
-                  AWS_REGION: us-east-1
-
     ansible-apply:
         name: "Ansible Apply (Provisioning)"
-        needs: ansible-dry-run
         runs-on: ubuntu-latest
         environment: test # manual approval gate
         steps:
