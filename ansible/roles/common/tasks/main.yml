@@ -42,20 +42,6 @@
 # TASK: Directory Structure Orchestration
 # DECISION: Use a loop to keep the code DRY (Don't Repeat Yourself).
 # ==============================================================================
-- name: Create base monitoring directories
-  file:
-    path: "{{ item }}" # This variable pulls the current string from the 'loop' list below
-    state: directory
-    owner: prometheus
-    group: prometheus
-    mode: "0755"
-  loop:
-    - /opt/monitoring
-    - /opt/monitoring/scripts
-    - /opt/monitoring/venv
-    - /etc/prometheus
-    - /etc/prometheus/file_sd
-    - /var/lib/prometheus
 
 - name: Ensure universe repository is enabled
   apt_repository:
@@ -66,6 +52,14 @@
   shell: |
     while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do sleep 5; done;
   changed_when: false
+
+- name: Force refresh of all apt repositories
+  shell: |
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+    apt-get update
+  become: true
+  changed_when: true
 
 - name: Install base dependencies
   apt:
@@ -80,3 +74,18 @@
     state: present
     update_cache: yes
     force_apt_get: yes
+
+- name: Create base monitoring directories
+  file:
+    path: "{{ item }}" # This variable pulls the current string from the 'loop' list below
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+  loop:
+    - /opt/monitoring
+    - /opt/monitoring/scripts
+    - /opt/monitoring/venv
+    - /etc/prometheus
+    - /etc/prometheus/file_sd
+    - /var/lib/prometheus
