@@ -26,22 +26,30 @@
     state: directory
     mode: "0755"
 
+- name: Ensure Prometheus download directory exists
+  file:
+    path: "/tmp/prometheus_install"
+    state: directory
+    mode: "0775"
+    owner: ubuntu # Using the default user to ensure write access
+    group: ubuntu
+
 - name: Download Prometheus binary
   get_url:
     url: "https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz"
-    dest: "{{ prom_archive }}"
+    dest: "/tmp/prometheus_install/prometheus.tar.gz"
     mode: "0644"
     force: no
 
 - name: Extract Prometheus binary
   unarchive:
-    src: "{{ prom_archive }}"
-    dest: "{{ prom_temp_dir }}"
+    src: "/tmp/prometheus_install/prometheus.tar.gz"
+    dest: "/tmp/prometheus_install"
     remote_src: yes
 
 - name: Copy Prometheus binaries to /usr/local/bin
   copy:
-    src: "{{ prom_temp_dir }}/prometheus-2.51.0.linux-amd64/{{ item }}"
+    src: "/tmp/prometheus_install/prometheus-2.51.0.linux-amd64/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     mode: "0755"
     owner: prometheus
