@@ -15,6 +15,11 @@
 # DECISION: Download to /tmp to keep the filesystem clean. unarchive handles
 #           extraction and cleanup in one step.
 # ==============================================================================
+- name: Set Prometheus path variables
+  set_fact:
+    prom_temp_dir: "/tmp/prometheus_install"
+    prom_archive: "/tmp/prometheus_install/prometheus.tar.gz"
+
 - name: Create temporary download directory
   file:
     path: /tmp/prometheus_install
@@ -24,23 +29,19 @@
 - name: Download Prometheus binary
   get_url:
     url: "https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz"
-    dest: "/tmp/prometheus.tar.gz"
-
-- name: Wait for download to be present on disk
-  wait_for:
-    path: "/tmp/prometheus_install/prometheus.tar.gz"
-    state: present
-    timeout: 30
+    dest: "{{ prom_archive }}"
+    mode: "0644"
+    force: no
 
 - name: Extract Prometheus binary
   unarchive:
-    src: "/tmp/prometheus.tar.gz"
-    dest: "/tmp"
+    src: "{{ prom_archive }}"
+    dest: "{{ prom_temp_dir }}"
     remote_src: yes
 
 - name: Copy Prometheus binaries to /usr/local/bin
   copy:
-    src: "/tmp/prometheus-2.51.0.linux-amd64/{{ item }}"
+    src: "{{ prom_temp_dir }}/prometheus-2.51.0.linux-amd64/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     mode: "0755"
     owner: prometheus
