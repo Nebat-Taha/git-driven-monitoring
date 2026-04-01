@@ -63,6 +63,8 @@ jobs:
                     --ssh-public-key file://~/.ssh/id_rsa.pub
                   done
 
+            - name: 🔍 Debug Inventory Hierarchy
+              run: ansible-inventory -i ansible/inventory/aws_ec2.yml --graph --vars
             - name: Run Master Playbook
               run: |
                   ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml
