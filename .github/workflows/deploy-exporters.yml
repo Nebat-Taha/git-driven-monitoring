@@ -102,4 +102,6 @@ jobs:
           ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
-          ansible-playbook -i ansible/inventory/aws_ec2.yml  ansible/playbooks/deploy_scripts.yml
+          ansible-playbook -i ansible/inventory/aws_ec2.yml \
+            ansible/playbooks/deploy_scripts.yml \
+            -e "ansible_python_interpreter=$(which python3)"
