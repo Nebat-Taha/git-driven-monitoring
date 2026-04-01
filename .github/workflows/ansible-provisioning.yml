@@ -62,6 +62,8 @@ jobs:
             --instance-os-user ubuntu \
             --ssh-public-key file://~/.ssh/id_rsa.pub
           done
+          echo "Waiting 10 seconds for Instance Connect to propagate..."
+          sleep 10
 
       - name: 🔍 Debug Inventory Hierarchy
         run: |
@@ -74,7 +76,9 @@ jobs:
 
       - name: Run Master Playbook
         run: |
-          ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml --flush-cache
+          ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml \
+            --private-key ~/.ssh/id_rsa \
+            --flush-cache
         env:
           ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
           ANSIBLE_HOST_KEY_CHECKING: "False"
