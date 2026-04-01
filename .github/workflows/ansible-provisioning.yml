@@ -78,6 +78,7 @@ jobs:
         run: |
           ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml \
             --private-key ~/.ssh/id_rsa \
+            --forks 10 \
             --flush-cache
         env:
           ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
