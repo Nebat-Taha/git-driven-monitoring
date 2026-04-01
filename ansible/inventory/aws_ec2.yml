@@ -13,9 +13,10 @@ regions:
 #     Broaden the filter to find BOTH types of servers
 filters:
   instance-state-name: [ 'running' ]
-  # This finds anything with either the 'Role' tag OR the 'Monitoring-Stack' tag
-  tag:Role: monitoring-server
   tag:Monitoring-Stack: prometheus
+  # This finds anything with either the 'Role' tag OR the 'Monitoring-Stack' tag
+  #tag:Role: monitoring-server
+  #tag:Monitoring-Stack: prometheus
 
 # 2. GROUPING LOGIC
 
