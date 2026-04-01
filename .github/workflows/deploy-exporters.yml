@@ -94,6 +94,7 @@ jobs:
         run: pip install boto3 botocore
 
       - name: Run Ansible Deploy Playbook
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
-          cd ansible
           ansible-playbook -i ansible/inventory/aws_ec2.yml  ansible/playbooks/deploy_scripts.yml
