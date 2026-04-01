@@ -65,9 +65,13 @@ jobs:
 
       - name: 🔍 Debug Inventory Hierarchy
         run: |
-          echo "Checking inventory for Monitoring-Stack: prometheus..."
-          ansible-inventory -i ansible/inventory/aws_ec2.y
+          echo "Checking inventory for Monitoring_Stack: prometheus..."
+          # 1. Show the visual tree (The fix for the error you saw)
+          ansible-inventory -i ansible/inventory/aws_ec2.yml --graph
+
+          # 2. Grep the list to confirm the group exists
           ansible-inventory -i ansible/inventory/aws_ec2.yml --list | grep -i "monitoring_stack"
+
       - name: Run Master Playbook
         run: |
           ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml --flush-cache
