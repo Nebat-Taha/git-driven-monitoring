@@ -49,6 +49,8 @@ module "iam_monitoring" {
       # Permission 1: Monitoring Data (SQS/CloudWatch)
       {
         Action = [
+          "ec2:DescribeInstances", # <-- ADD THIS LINE
+          "ec2:DescribeTags",      # <-- ADD THIS for tag filtering
           "sqs:GetQueueAttributes",
           "sqs:ListQueues",
           "cloudwatch:GetMetricData",
