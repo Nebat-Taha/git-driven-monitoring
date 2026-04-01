@@ -18,6 +18,7 @@
 name: "Workflow 4: Deploy Custom Exporters"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
