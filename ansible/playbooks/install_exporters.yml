@@ -8,7 +8,7 @@
 ---
 - name: "Install Node Exporter on Remote Managed Nodes"
   # Target instances tagged with 'Monitoring: enabled'
-  hosts: "monitoring_stack_prometheus:&!role_monitoring_server"
+  hosts: "monitoring_stack_prometheus:!role_monitoring_server"
   become: true
   roles:
     - node_exporter_remote
