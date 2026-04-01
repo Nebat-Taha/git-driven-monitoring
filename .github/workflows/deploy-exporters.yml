@@ -55,7 +55,7 @@ jobs:
   deploy:
     name: "Deploy to EC2"
     needs: lint
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       id-token: write # Necessary for OIDC JWT
