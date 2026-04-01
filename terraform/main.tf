@@ -87,7 +87,7 @@ module "ec2_prometheus" {
   custom_tags = {
     Name             = "${var.project_name}-prometheus-engine"
     Role             = "monitoring-server"
-    Monitoring-Stack = "prometheus"
+    Monitoring_Stack = "prometheus"
   }
 }
 
@@ -107,6 +107,6 @@ module "ec2_remote_node" {
   custom_tags = {
     Name             = "${var.project_name}-test-node"
     Role             = "web-server"
-    Monitoring-Stack = "prometheus"
+    Monitoring_Stack = "prometheus"
   }
 }

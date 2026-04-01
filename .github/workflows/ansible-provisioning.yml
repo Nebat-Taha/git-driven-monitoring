@@ -1,74 +1,77 @@
 name: "Workflow 2: Ansible Provisioning"
 
 on:
-    # 1. Manual trigger for testing/troubleshooting
-    workflow_dispatch:
+  # 1. Manual trigger for testing/troubleshooting
+  workflow_dispatch:
 
-    # 2. Trigger after Terraform finishes a fresh build
-    workflow_run:
-        workflows: ["Terraform Deployment"]
-        types: [completed]
-    # 3. Trigger ONLY when Ansible code changes (The missing piece)
-    #push:
-    #branches: [main]
-    #paths:
-    #- "ansible/**"
+  # 2. Trigger after Terraform finishes a fresh build
+  workflow_run:
+    workflows: ["Terraform Deployment"]
+    types: [completed]
+  # 3. Trigger ONLY when Ansible code changes (The missing piece)
+  #push:
+  #branches: [main]
+  #paths:
+  #- "ansible/**"
 
 permissions:
-    id-token: write # Required for OIDC
-    contents: read # Required for checkout
+  id-token: write # Required for OIDC
+  contents: read # Required for checkout
 
 jobs:
-    ansible-apply:
-        name: "Ansible Apply (Provisioning)"
-        runs-on: ubuntu-latest
-        #environment: test # manual approval gate
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  ansible-apply:
+    name: "Ansible Apply (Provisioning)"
+    runs-on: ubuntu-latest
+    #environment: test # manual approval gate
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Configure AWS Credentials (OIDC)
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-                  aws-region: us-east-1
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
 
-            - name: Set up Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: "3.11"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-            - name: Install Dependencies
-              run: |
-                  pip install ansible boto3 botocore
-                  ansible-galaxy collection install community.aws
+      - name: Install Dependencies
+        run: |
+          pip install ansible boto3 botocore
+          ansible-galaxy collection install community.aws
 
-            - name: Generate Ephemeral SSH Key
-              run: |
-                  mkdir -p ~/.ssh
-                  ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "" -q
-                  chmod 600 ~/.ssh/id_rsa
+      - name: Generate Ephemeral SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keygen -t rsa -f ~/.ssh/id_rsa -N "" -q
+          chmod 600 ~/.ssh/id_rsa
 
-            - name: Inject SSH Keys (Instance Connect)
-              run: |
-                  INSTANCE_IDS=$(aws ec2 describe-instances \
-                    --filters "Name=tag:Project,Values=monitoring-system" "Name=instance-state-name,Values=running" \
-                    --query "Reservations[*].Instances[*].InstanceId" \
-                    --output text)
+      - name: Inject SSH Keys (Instance Connect)
+        run: |
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --filters "Name=tag:Project,Values=monitoring-system" "Name=instance-state-name,Values=running" \
+            --query "Reservations[*].Instances[*].InstanceId" \
+            --output text)
 
-                  for ID in $INSTANCE_IDS; do
-                  aws ec2-instance-connect send-ssh-public-key \
-                    --instance-id $ID \
-                    --instance-os-user ubuntu \
-                    --ssh-public-key file://~/.ssh/id_rsa.pub
-                  done
+          for ID in $INSTANCE_IDS; do
+          aws ec2-instance-connect send-ssh-public-key \
+            --instance-id $ID \
+            --instance-os-user ubuntu \
+            --ssh-public-key file://~/.ssh/id_rsa.pub
+          done
 
-            - name: 🔍 Debug Inventory Hierarchy
-              run: ansible-inventory -i ansible/inventory/aws_ec2.yml --graph --vars
-            - name: Run Master Playbook
-              run: |
-                  ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml
-              env:
-                  ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
-                  ANSIBLE_HOST_KEY_CHECKING: "False"
-                  AWS_REGION: us-east-1
+      - name: 🔍 Debug Inventory Hierarchy
+        run: |
+          echo "Checking inventory for Monitoring-Stack: prometheus..."
+          ansible-inventory -i ansible/inventory/aws_ec2.y
+          ansible-inventory -i ansible/inventory/aws_ec2.yml --list | grep -i "monitoring_stack"
+      - name: Run Master Playbook
+        run: |
+          ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml --flush-cache
+        env:
+          ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+          AWS_REGION: us-east-1

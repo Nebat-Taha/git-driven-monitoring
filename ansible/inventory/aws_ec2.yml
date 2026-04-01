@@ -13,7 +13,7 @@ regions:
 #     Broaden the filter to find BOTH types of servers
 filters:
   instance-state-name: [ 'running' ]
-  tag:Monitoring-Stack: prometheus
+  tag:Monitoring_Stack: prometheus
   # This finds anything with either the 'Role' tag OR the 'Monitoring-Stack' tag
   #tag:Role: monitoring-server
   #tag:Monitoring-Stack: prometheus
@@ -29,7 +29,7 @@ keyed_groups:
 
   # Group B: monitoring_stack_prometheus (The nodes to be monitored)
   # Creates group: monitoring_stack_prometheus
-  - key: tags.Monitoring-Stack
+  - key: tags.Monitoring_Stack
     prefix: monitoring_stack
     separator: "_"
 
