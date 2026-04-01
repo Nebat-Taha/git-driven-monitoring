@@ -34,7 +34,7 @@ scrape_configs:
       - region: us-east-1
         port: 9100
         filters:
-          - name: tag:Monitoring-Stack
+          - name: tag:Monitoring_Stack
             values: ["prometheus"]
     
     # RELABELING: Transforms raw AWS metadata into readable Grafana labels
