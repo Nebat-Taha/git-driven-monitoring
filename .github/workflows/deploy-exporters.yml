@@ -93,15 +93,12 @@ jobs:
 
       - name: Install Ansible Dependencies
         run: |
-          python3 -m pip install boto3 botocore
-          # This ensures the 'aws_ec2' plugin can find the libs
+          pip install ansible boto3 botocore
           ansible-galaxy collection install amazon.aws
-
+          ansible-galaxy collection install community.aws
       - name: Run Ansible Deploy Playbook
         env:
           ANSIBLE_CONFIG: ${{ github.workspace }}/ansible/ansible.cfg
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
-          ansible-playbook -i ansible/inventory/aws_ec2.yml \
-            ansible/playbooks/deploy_scripts.yml \
-            -e "ansible_python_interpreter=$(which python3)"
+          ansible-playbook ansible/playbooks/deploy_scripts.yml
