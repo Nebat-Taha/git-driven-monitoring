@@ -14,6 +14,7 @@
 # ==============================================================================
 # PROMETHEUS GLOBAL CONFIGURATION
 # ==============================================================================
+# PROMETHEUS GLOBAL CONFIGURATION
 global:
   scrape_interval: 15s     # Frequency of data collection
   evaluation_interval: 15s # Frequency of alert rule evaluation
@@ -28,8 +29,6 @@ scrape_configs:
       - targets: ['localhost:9090']
 
   # 2. THE INFRASTRUCTURE LAYER (EC2 Auto-Discovery)
-  # DECISION: We use the IAM Instance Profile to allow Prometheus to 
-  #           query the AWS API for running instances.
   - job_name: 'aws_ec2_infrastructure'
     ec2_sd_configs:
       - region: us-east-1
@@ -49,12 +48,10 @@ scrape_configs:
   - job_name: 'aws_managed_services'
     static_configs:
       - targets: ['localhost:9106']
-    labels:
-      category: 'cloudwatch'
+        labels:               # FIXED: Moved inside static_configs
+          category: 'cloudwatch'
 
   # 4. THE SELF-SERVICE LAYER (Dynamic Custom Exporters)
-  # DECISION: No Prometheus restart is required when new JSON files 
-  #           appear in this directory.
   - job_name: 'custom_python_exporters'
     file_sd_configs:
       - files:

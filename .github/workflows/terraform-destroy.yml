@@ -32,7 +32,7 @@ jobs:
   terraform_destroy:
     name: "Destroy Infrastructure"
     runs-on: ubuntu-latest
-    environment: test # Optional: Add a second approval gate here too!
+    #environment: test # Optional: Add a second approval gate here too!
 
     steps:
       - name: Checkout code
