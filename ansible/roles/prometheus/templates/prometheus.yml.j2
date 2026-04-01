@@ -44,14 +44,7 @@ scrape_configs:
       - source_labels: [__meta_ec2_availability_zone]
         target_label: az
 
-  # 3. THE CLOUDWATCH LAYER (AWS Managed Services)
-  - job_name: 'aws_managed_services'
-    static_configs:
-      - targets: ['localhost:9106']
-        labels:               # FIXED: Moved inside static_configs
-          category: 'cloudwatch'
-
-  # 4. THE SELF-SERVICE LAYER (Dynamic Custom Exporters)
+   # 3. THE SELF-SERVICE LAYER (Dynamic Custom Exporters)
   - job_name: 'custom_python_exporters'
     file_sd_configs:
       - files:
