@@ -1,13 +1,11 @@
 ---
 - name: Gather S3 Bucket Information
   amazon.aws.s3_bucket_info:
-    # Ensure this is exactly amazon.aws
     region: "{{ aws_region }}"
   register: s3_info
 
 - name: Gather SQS Queue Information
   amazon.aws.sqs_info:
-    # Ensure this is exactly amazon.aws
     region: "{{ aws_region }}"
   register: sqs_info
 
