@@ -76,6 +76,10 @@ jobs:
           # 2. Grep the list to confirm the group exists
           ansible-inventory -i ansible/inventory/aws_ec2.yml --list | grep -i "monitoring_stack"
 
+      - name: 🔍 Final Module Debug
+        run: |
+          ansible-doc -t module amazon.aws.sqs_info
+
       - name: Run Master Playbook
         run: |
           ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml \
