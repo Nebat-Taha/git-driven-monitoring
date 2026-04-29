@@ -4,11 +4,6 @@
     region: "{{ aws_region | default('us-east-1') }}"
   register: s3_info
 
-- name: Gather SQS Queue Information
-  amazon.aws.sqs_info:
-    region: "{{ aws_region | default('us-east-1') }}"
-  register: sqs_info
-
 - name: Generate File SD JSON for Custom Exporters
   template:
     src: aws_resources.json.j2
