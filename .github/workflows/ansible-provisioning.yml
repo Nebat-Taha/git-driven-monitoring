@@ -41,7 +41,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install ansible boto3 botocore
-          ansible-galaxy collection install -r ansible/requirements.yml
+          ansible-galaxy collection install -r ansible/requirements.yml --force
 
       - name: Generate Ephemeral SSH Key
         run: |

@@ -12,4 +12,3 @@
     - prometheus
     - node_exporter
     - custom_exporters
-    - aws_resource_registrar

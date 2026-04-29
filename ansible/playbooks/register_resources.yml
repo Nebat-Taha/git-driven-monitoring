@@ -1,0 +1,9 @@
+---
+- name: "AWS Resource Discovery: Register S3 and SQS"
+  hosts: tag_Role_monitoring_server
+  become: true
+  collections:
+    - amazon.aws
+    - community.aws
+  roles:
+    - aws_resource_registrar
