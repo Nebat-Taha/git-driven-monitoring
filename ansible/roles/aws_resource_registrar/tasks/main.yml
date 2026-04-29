@@ -1,11 +1,11 @@
 ---
-- name: Gather S3 Buckets
-  aws_s3_bucket_info:
+- name: Gather S3 Bucket Information
+  amazon.aws.s3_bucket_info:
     region: "{{ aws_region | default('us-east-1') }}"
   register: s3_info
 
-- name: Gather SQS Queues
-  sqs_info:
+- name: Gather SQS Queue Information
+  amazon.aws.sqs_info:
     region: "{{ aws_region | default('us-east-1') }}"
   register: sqs_info
 

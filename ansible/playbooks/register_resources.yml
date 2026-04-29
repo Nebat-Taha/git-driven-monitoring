@@ -4,6 +4,5 @@
   become: true
   collections:
     - amazon.aws
-    - community.aws
   roles:
     - aws_resource_registrar
