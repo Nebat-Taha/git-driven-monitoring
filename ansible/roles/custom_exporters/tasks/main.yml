@@ -30,6 +30,15 @@
     virtualenv: /opt/monitoring/venv
     virtualenv_command: python3 -m venv
 
+- name: Copy Python scripts
+  copy:
+    src: "{{ item }}"
+    dest: /opt/monitoring/scripts/
+    owner: prometheus
+    mode: "0755"
+  with_fileglob:
+    - "../../python_scripts/*.py"
+
 - name: Ensure scripts have correct permissions
   file:
     path: /opt/monitoring/scripts/{{ item }}
@@ -40,15 +49,6 @@
     - s3_monitor.py
     - ec2_monitor.py
     - sqs_age_monitor.py
-
-- name: Copy Python scripts
-  copy:
-    src: "{{ item }}"
-    dest: /opt/monitoring/scripts/
-    owner: prometheus
-    mode: "0755"
-  with_fileglob:
-    - "../../python_scripts/*.py"
 
 - name: Process each exporter config
   include_tasks: manage_single_exporter.yml
