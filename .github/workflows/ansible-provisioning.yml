@@ -6,8 +6,8 @@ on:
 
   # 2. Trigger after Terraform finishes a fresh build
   workflow_run:
-    workflows: ["Terraform Deployment"]
-    types: [completed]
+    workflows: [ "Terraform Deployment" ]
+    types: [ completed ]
   # 3. Trigger ONLY when Ansible code changes (The missing piece)
   #push:
   #branches: [main]
@@ -42,6 +42,7 @@ jobs:
         run: |
           pip install ansible boto3 botocore
           ansible-galaxy collection install community.aws
+          ansible-galaxy collection install amazon.aws
 
       - name: Generate Ephemeral SSH Key
         run: |
