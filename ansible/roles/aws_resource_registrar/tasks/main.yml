@@ -1,14 +1,13 @@
 ---
-- name: Gather S3 Bucket Information
+- name: Gather S3
   amazon.aws.s3_bucket_info:
-    region: "{{ aws_region }}"
+    region: us-east-1
   register: s3_info
 
-- name: Gather SQS Queue Information
+- name: Gather SQS
   amazon.aws.sqs_info:
-    region: "{{ aws_region }}"
+    region: us-east-1
   register: sqs_info
-
 - name: Generate File SD JSON for Custom Exporters
   template:
     src: aws_resources.json.j2
