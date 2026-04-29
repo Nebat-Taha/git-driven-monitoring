@@ -1,14 +1,12 @@
 ---
 - name: Gather S3 Buckets
   aws_s3_bucket_info:
-    # Removed the 'amazon.aws.' prefix
-    region: us-east-1
+    region: "{{ aws_region | default('us-east-1') }}"
   register: s3_info
 
 - name: Gather SQS Queues
   sqs_info:
-    # Removed the 'amazon.aws.' prefix
-    region: us-east-1
+    region: "{{ aws_region | default('us-east-1') }}"
   register: sqs_info
 
 - name: Generate File SD JSON for Custom Exporters

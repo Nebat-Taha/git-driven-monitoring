@@ -77,7 +77,7 @@ jobs:
 
       - name: Run Master Playbook
         run: |
-          python3 -m ansible.playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml \
+          ansible-playbook -i ansible/inventory/aws_ec2.yml ansible/site.yml \
             --private-key ~/.ssh/id_rsa \
             --forks 10 \
             --flush-cache
