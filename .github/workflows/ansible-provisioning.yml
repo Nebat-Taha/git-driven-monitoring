@@ -41,7 +41,8 @@ jobs:
       - name: Install Dependencies
         run: |
           python3 -m pip install --upgrade pip
-          pip install ansible boto3 botocore
+          # Force the latest boto3/botocore so sqs_info is recognized
+          pip install --upgrade ansible boto3 botocore 
           ansible-galaxy collection install -r ansible/requirements.yml --force
 
       - name: Generate Ephemeral SSH Key
