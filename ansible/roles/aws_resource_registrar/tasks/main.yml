@@ -1,11 +1,11 @@
 ---
 - name: Gather S3
-  amazon.aws.s3_bucket_info:
+  amazon.aws.s3_bucket_facts:
     region: us-east-1
   register: s3_info
 
 - name: Gather SQS
-  amazon.aws.sqs_info:
+  amazon.aws.sqs_facts:
     region: us-east-1
   register: sqs_info
 - name: Generate File SD JSON for Custom Exporters
