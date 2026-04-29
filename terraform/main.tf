@@ -53,6 +53,7 @@ module "iam_monitoring" {
           "ec2:DescribeTags",      # <-- ADD THIS for tag filtering
           "sqs:GetQueueAttributes",
           "sqs:ListQueues",
+          "s3:ListAllMyBuckets",
           "cloudwatch:GetMetricData",
           "cloudwatch:ListMetrics"
         ]

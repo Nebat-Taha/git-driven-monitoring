@@ -34,7 +34,7 @@
   user:
     name: prometheus
     group: prometheus
-    shell: /sbin/nologin
+    shell: /sbin/nologin # this user cannot be used to login to the server
     system: yes
     create_home: no
 

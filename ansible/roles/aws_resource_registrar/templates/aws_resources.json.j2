@@ -1,0 +1,26 @@
+[
+{% set targets = [] %}
+{% for bucket in s3_info.buckets %}
+  {% do targets.append({
+    "targets": ["localhost:8000"],
+    "labels": {
+      "job": "custom_python_exporters",
+      "resource_type": "s3",
+      "resource_name": bucket.name,
+      "project": "monitoring-system"
+    }
+  }) %}
+{% endfor %}
+{% for queue in sqs_info.queue_urls %}
+  {% do targets.append({
+    "targets": ["localhost:8000"],
+    "labels": {
+      "job": "custom_python_exporters",
+      "resource_type": "sqs",
+      "resource_name": queue | basename,
+      "project": "monitoring-system"
+    }
+  }) %}
+{% endfor %}
+{{ targets | to_nice_json }}
+]
