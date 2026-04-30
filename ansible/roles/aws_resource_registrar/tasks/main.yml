@@ -4,27 +4,27 @@
     region: "{{ aws_region | default('us-east-1') }}"
   register: all_buckets
 
-- name: DEBUG - Show raw structure of first bucket
-  debug:
-    msg: "{{ all_buckets.buckets[0] }}"
-  when: all_buckets.buckets | length > 0
+- name: Fetch Tags for Each Bucket
+  amazon.aws.s3_bucket_tagging_info:
+    bucket: "{{ item.name }}"
+    region: "{{ aws_region | default('us-east-1') }}"
+  loop: "{{ all_buckets.buckets }}"
+  register: bucket_tags
+  ignore_errors: true # Some buckets might be in different regions
 
-- name: Filter Buckets by Project Tag Defensively
+- name: Consolidate and Filter Buckets with Tags
   set_fact:
     filtered_buckets: >-
-      {{ 
-        all_buckets.buckets 
-        | selectattr('tags', 'defined') 
-        | selectattr('tags', 'ne', none)
-        | selectattr('tags.project', 'defined') 
-        | selectattr('tags.project', 'equalto', 'monitoring-system') 
-        | list 
-      }}
+      {% set results = [] %} {% for b in bucket_tags.results %}
+        {% if b.tags is defined and b.tags and b.tags.project == 'monitoring-system' %}
+          {% set _ = results.append({'name': b.item.name, 'tags': b.tags}) %}
+        {% endif %}
+      {% endfor %} {{ results }}
 
-- name: DEBUG - What does AWS actually see?
+- name: DEBUG - SHOW ME THE MATCHING BUCKETS
   debug:
-    msg: "Bucket {{ item.name }} tags: {{ item.tags | default('NO TAGS FOUND') }}"
-  loop: "{{ all_buckets.buckets }}"
+    msg: "Final list for Prometheus: {{ filtered_buckets | map(attribute='name') |
+      list }}"
 
 - name: Generate File SD JSON for Custom Exporters
   template:
@@ -37,4 +37,4 @@
 - name: Force Prometheus to refresh targets
   systemd:
     name: prometheus
-    state: reloaded
+    state: restarted
