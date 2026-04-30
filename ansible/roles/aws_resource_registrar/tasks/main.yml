@@ -1,20 +1,30 @@
 ---
-- name: Gather S3 Bucket Information
-  amazon.aws.s3_bucket_info:
-    region: "{{ aws_region | default('us-east-1') }}"
-    bucket_facts:
-      - tags
-  register: all_buckets
+- name: Gather S3 Buckets and Tags via AWS CLI
+  shell: |
+    aws s3api list-buckets --query 'Buckets[].Name' --output json
+  register: bucket_names_raw
 
-- name: Consolidate and Filter Buckets with Tags
+- name: Fetch and Filter Buckets Manually
+  shell: |
+    BUCKET_NAME="{{ item }}"
+    TAGS=$(aws s3api get-bucket-tagging --bucket $BUCKET_NAME --output json 2>/dev/null || echo '{"TagSet": []}')
+    echo "$TAGS" | jq -e '.TagSet[] | select(.Key=="project" and .Value=="monitoring-system")' > /dev/null
+    if [ $? -eq 0 ]; then
+      echo "$BUCKET_NAME"
+    fi
+  loop: "{{ bucket_names_raw.stdout | from_json }}"
+  register: filtered_bucket_output
+  changed_when: false
+  ignore_errors: true
+
+- name: Consolidate Filtered List
   set_fact:
     filtered_buckets: >-
-      {{ 
-        all_buckets.buckets 
-        | selectattr('tags.project', 'defined') 
-        | selectattr('tags.project', 'equalto', 'monitoring-system') 
-        | list 
-      }}
+      {% set results = [] %} {% for run in filtered_bucket_output.results %}
+        {% if run.stdout != "" %}
+          {% set _ = results.append({'name': run.stdout | trim}) %}
+        {% endif %}
+      {% endfor %} {{ results }}
 
 - name: DEBUG - SHOW ME THE MATCHING BUCKETS
   debug:
