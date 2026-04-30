@@ -3,22 +3,23 @@
   delegate_to: localhost
   become: false
   shell: |
-    # 1. Get all buckets and check tagging for each
+    # Force the search across all buckets
     for bucket in $(aws s3api list-buckets --query 'Buckets[].Name' --output text); do
-      # We use double quotes for the shell and single quotes for the JMESPath query to avoid 'not found' errors
-      TAG_VALUE=$(aws s3api get-bucket-tagging --bucket "$bucket" --query "TagSet[?Key=='project' && Value=='monitoring-system'].Value" --output text 2>/dev/null)
+      # Fetch tags and use grep to be less sensitive to exact string formatting
+      TAGS=$(aws s3api get-bucket-tagging --bucket "$bucket" --output json 2>/dev/null)
       
-      if [ "$TAG_VALUE" = "monitoring-system" ]; then
+      # Check if 'monitoring-system' exists in the tags (case-insensitive)
+      if echo "$TAGS" | grep -iq "monitoring-system"; then
         echo "$bucket"
       fi
     done
   register: bucket_discovery
-  # We add failed_when: false because if no buckets match, we don't want the whole pipeline to crash
   failed_when: false
 
 - name: Update Monitored Buckets Registry
   copy:
-    content: "{{ bucket_discovery.stdout }}"
+    # Use 'trim' to ensure no weird whitespace enters the file
+    content: "{{ bucket_discovery.stdout | trim }}"
     dest: "/etc/prometheus/monitored_buckets.list"
     owner: prometheus
     group: prometheus
