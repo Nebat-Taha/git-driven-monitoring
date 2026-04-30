@@ -1,47 +1,37 @@
 ---
-- name: Local Discovery of S3 Buckets
+- name: Discover Tagged S3 Buckets (The Registrar)
   delegate_to: localhost
   become: false
   shell: |
-    # Get all bucket names
-    BUCKETS=$(aws s3api list-buckets --query 'Buckets[].Name' --output text)
+    aws s3api list-buckets --query 'Buckets[].Name' --output text | xargs -n1 | xargs -I {} sh -c 'aws s3api get-bucket-tagging --bucket {} --query "TagSet[?Key==`project` && Value==`monitoring-system`].Value" --output text 2>/dev/null && echo {}'
+  register: bucket_discovery
 
-    MATCHES=""
-    for bucket in $BUCKETS; do
-      # Check for the specific project tag
-      TAG=$(aws s3api get-bucket-tagging --bucket "$bucket" --query 'TagSet[?Key==`project` && Value==`monitoring-system`].Value' --output text 2>/dev/null)
-      
-      if [ "$TAG" == "monitoring-system" ]; then
-        if [ -z "$MATCHES" ]; then MATCHES="\"$bucket\""; else MATCHES="$MATCHES, \"$bucket\""; fi
-      fi
-    done
-    echo "[$MATCHES]"
-  register: local_filtered_buckets
+- name: Update Monitored Buckets Registry
+  copy:
+    content: "{{ bucket_discovery.stdout }}"
+    dest: "/etc/prometheus/monitored_buckets.list"
+    owner: prometheus
+    group: prometheus
+    mode: "0644"
 
-- name: Create local temp file for discovery
-  delegate_to: localhost
-  become: false
+- name: Register Exporter Target in Self-Service Layer
   copy:
     content: |
       [
         {
-          "targets": {{ local_filtered_buckets.stdout }},
+          "targets": ["localhost:9201"],
           "labels": {
-            "job": "custom_s3_exporter"
+            "exporter_type": "s3_manager",
+            "project": "monitoring-system"
           }
         }
       ]
-    dest: "/tmp/aws_resources.json"
-
-- name: Ship the discovery file to the server
-  copy:
-    src: "/tmp/aws_resources.json"
     dest: "/etc/prometheus/file_sd/aws_resources.json"
     owner: prometheus
     group: prometheus
     mode: "0644"
 
-- name: Force Prometheus to refresh targets
+- name: Reload Prometheus
   systemd:
     name: prometheus
     state: restarted
