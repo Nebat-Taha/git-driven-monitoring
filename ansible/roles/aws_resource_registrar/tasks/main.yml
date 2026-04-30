@@ -16,6 +16,10 @@
         | list 
       }}
 
+- name: Debug Filtered Buckets
+  debug:
+    var: filtered_buckets
+
 - name: Generate File SD JSON for Custom Exporters
   template:
     src: aws_resources.json.j2

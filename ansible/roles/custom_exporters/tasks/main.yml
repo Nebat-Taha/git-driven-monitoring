@@ -38,6 +38,7 @@
     mode: "0755"
   with_fileglob:
     - "../../python_scripts/*.py"
+  notify: restart all exporters
 
 - name: Ensure scripts have correct permissions
   file:
