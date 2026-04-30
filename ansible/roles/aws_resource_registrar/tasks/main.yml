@@ -20,6 +20,11 @@
   debug:
     var: filtered_buckets
 
+- name: SHOW ME THE BUCKETS
+  debug:
+    msg: "Ansible found these matching buckets: {{ filtered_buckets |
+      map(attribute='name') | list }}"
+
 - name: Generate File SD JSON for Custom Exporters
   template:
     src: aws_resources.json.j2

@@ -1,6 +1,6 @@
 ---
 - name: "AWS Resource Discovery: Register S3 and SQS"
-  hosts: tag_Role_monitoring_server
+  hosts: monitoring-system-prometheus-engine
   become: true
   collections:
     - amazon.aws
