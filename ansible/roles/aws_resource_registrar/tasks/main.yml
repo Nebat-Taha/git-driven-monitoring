@@ -2,24 +2,18 @@
 - name: Gather S3 Bucket Information
   amazon.aws.s3_bucket_info:
     region: "{{ aws_region | default('us-east-1') }}"
+    query: tagging
   register: all_buckets
-
-- name: Fetch Tags for Each Bucket
-  amazon.aws.s3_bucket_tagging_info:
-    bucket: "{{ item.name }}"
-    region: "{{ aws_region | default('us-east-1') }}"
-  loop: "{{ all_buckets.buckets }}"
-  register: bucket_tags
-  ignore_errors: true # Some buckets might be in different regions
 
 - name: Consolidate and Filter Buckets with Tags
   set_fact:
     filtered_buckets: >-
-      {% set results = [] %} {% for b in bucket_tags.results %}
-        {% if b.tags is defined and b.tags and b.tags.project == 'monitoring-system' %}
-          {% set _ = results.append({'name': b.item.name, 'tags': b.tags}) %}
-        {% endif %}
-      {% endfor %} {{ results }}
+      {{ 
+        all_buckets.buckets 
+        | selectattr('tags.project', 'defined') 
+        | selectattr('tags.project', 'equalto', 'monitoring-system') 
+        | list 
+      }}
 
 - name: DEBUG - SHOW ME THE MATCHING BUCKETS
   debug:
