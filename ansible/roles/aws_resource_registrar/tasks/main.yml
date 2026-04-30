@@ -4,6 +4,11 @@
     region: "{{ aws_region | default('us-east-1') }}"
   register: all_buckets
 
+- name: DEBUG - Show raw structure of first bucket
+  debug:
+    msg: "{{ all_buckets.buckets[0] }}"
+  when: all_buckets.buckets | length > 0
+
 - name: Filter Buckets by Project Tag Defensively
   set_fact:
     filtered_buckets: >-
@@ -18,7 +23,7 @@
 
 - name: DEBUG - What does AWS actually see?
   debug:
-    msg: "Bucket {{ item.name }} has these tags: {{ item.tags }}"
+    msg: "Bucket {{ item.name }} tags: {{ item.tags | default('NO TAGS FOUND') }}"
   loop: "{{ all_buckets.buckets }}"
 
 - name: Generate File SD JSON for Custom Exporters
