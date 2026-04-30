@@ -3,8 +3,18 @@
   delegate_to: localhost
   become: false
   shell: |
-    aws s3api list-buckets --query 'Buckets[].Name' --output text | xargs -n1 | xargs -I {} sh -c 'aws s3api get-bucket-tagging --bucket {} --query "TagSet[?Key==`project` && Value==`monitoring-system`].Value" --output text 2>/dev/null && echo {}'
+    # 1. Get all buckets and check tagging for each
+    for bucket in $(aws s3api list-buckets --query 'Buckets[].Name' --output text); do
+      # We use double quotes for the shell and single quotes for the JMESPath query to avoid 'not found' errors
+      TAG_VALUE=$(aws s3api get-bucket-tagging --bucket "$bucket" --query "TagSet[?Key=='project' && Value=='monitoring-system'].Value" --output text 2>/dev/null)
+      
+      if [ "$TAG_VALUE" = "monitoring-system" ]; then
+        echo "$bucket"
+      fi
+    done
   register: bucket_discovery
+  # We add failed_when: false because if no buckets match, we don't want the whole pipeline to crash
+  failed_when: false
 
 - name: Update Monitored Buckets Registry
   copy:
