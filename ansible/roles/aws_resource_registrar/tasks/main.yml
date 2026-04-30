@@ -16,14 +16,10 @@
         | list 
       }}
 
-- name: Debug Filtered Buckets
+- name: DEBUG - What does AWS actually see?
   debug:
-    var: filtered_buckets
-
-- name: SHOW ME THE BUCKETS
-  debug:
-    msg: "Ansible found these matching buckets: {{ filtered_buckets |
-      map(attribute='name') | list }}"
+    msg: "Bucket {{ item.name }} has these tags: {{ item.tags }}"
+  loop: "{{ all_buckets.buckets }}"
 
 - name: Generate File SD JSON for Custom Exporters
   template:
@@ -32,3 +28,8 @@
     owner: prometheus
     group: prometheus
     mode: "0644"
+
+- name: Force Prometheus to refresh targets
+  systemd:
+    name: prometheus
+    state: reloaded
