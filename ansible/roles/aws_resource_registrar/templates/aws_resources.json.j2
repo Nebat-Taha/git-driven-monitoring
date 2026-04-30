@@ -1,12 +1,11 @@
 [
-  {% for bucket in s3_info.buckets %}
+  {% for bucket in filtered_buckets %}
   {
-    "targets": ["localhost:8000"],
+    "targets": ["localhost:9201"],
     "labels": {
-      "job": "custom_python_exporters",
-      "resource_type": "s3",
+      "job": "s3_monitor",
       "resource_name": "{{ bucket.name }}",
-      "project": "monitoring-system"
+      "project": "{{ bucket.tags.project }}"
     }
   }{{ "," if not loop.last else "" }}
   {% endfor %}

@@ -53,7 +53,11 @@ module "iam_monitoring" {
           "ec2:DescribeTags",      # <-- ADD THIS for tag filtering
           "sqs:GetQueueAttributes",
           "sqs:ListQueues",
-          "s3:ListAllMyBuckets",
+          "s3:ListAllMyBuckets",  # List all buckets in the account
+          "s3:ListBucket",        # List objects inside a specific bucket
+          "s3:GetBucketLocation", # Required to know which region to query
+          "s3:GetBucketTagging",  # Useful if your script filters by tags
+          "s3:GetObject",         # Only if your script needs to read file content
           "cloudwatch:GetMetricData",
           "cloudwatch:ListMetrics"
         ]

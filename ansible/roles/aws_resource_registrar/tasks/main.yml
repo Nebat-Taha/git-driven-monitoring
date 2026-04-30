@@ -2,7 +2,19 @@
 - name: Gather S3 Bucket Information
   amazon.aws.s3_bucket_info:
     region: "{{ aws_region | default('us-east-1') }}"
-  register: s3_info
+  register: all_buckets
+
+- name: Filter Buckets by Project Tag Defensively
+  set_fact:
+    filtered_buckets: >-
+      {{ 
+        all_buckets.buckets 
+        | selectattr('tags', 'defined') 
+        | selectattr('tags', 'ne', none)
+        | selectattr('tags.project', 'defined') 
+        | selectattr('tags.project', 'equalto', 'monitoring-system') 
+        | list 
+      }}
 
 - name: Generate File SD JSON for Custom Exporters
   template:
