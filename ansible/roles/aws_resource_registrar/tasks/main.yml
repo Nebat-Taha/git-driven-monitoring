@@ -2,7 +2,8 @@
 - name: Gather S3 Bucket Information
   amazon.aws.s3_bucket_info:
     region: "{{ aws_region | default('us-east-1') }}"
-    bucket_tagging: true
+    bucket_facts:
+      - tags
   register: all_buckets
 
 - name: Consolidate and Filter Buckets with Tags
