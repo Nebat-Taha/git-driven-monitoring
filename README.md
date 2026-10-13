@@ -225,5 +225,3 @@ This platform is designed for **Zero-Touch Automation**. To monitor a new AWS se
 * **Reload Prometheus Config:** `curl -X POST http://localhost:9090/-/reload`
 
 ---
-
-**Congratulations! You've built a production-grade, scalable monitoring engine. Would you like me to draft a sample "Starter Script" for your SQS Age exporter to test the new platform?**
