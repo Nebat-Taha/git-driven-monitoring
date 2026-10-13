@@ -141,11 +141,7 @@ Add a new Secret named AWS_ROLE_ARN and paste the ARN there.
 Nebat Nurhussen Taha
 
 
-Edit from here 
 
-This `README.md` is the "Source of Truth" for your repository. It bridges the gap between your Terraform infrastructure, your Ansible automation, and your GitHub Actions workflows, ensuring anyone (including your future self) understands how this "Monitoring-as-Code" platform works.
-
----
 
 # 🛡️ Integrated AWS Monitoring Platform (DevOps Stack)
 
