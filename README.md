@@ -248,6 +248,10 @@ The Prometheus UI supports target inspection, PromQL queries, and metric visuali
 
 ## Engineering Design Decisions
 
+### Portability and Reusability
+
+The project favors repository-relative configurations and reusable automation components over environment-specific paths, allowing the monitoring platform to be replicated and adapted across different repositories and deployment environments.
+
 ### Separation of Deployment Lifecycles
 
 Infrastructure provisioning, monitoring server configuration, and custom exporter deployment are handled by separate workflows.
